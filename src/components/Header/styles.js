@@ -25,10 +25,11 @@ export const Cart = styled(Link)`
     strong {
       display: block;
       color: #fff;
+      font-size: 16px;
     }
 
     span {
-      font-size: 12px;
+      font-size: 14px;
       color: #999;
     }
   }
