@@ -4,7 +4,7 @@ export default function cart(state = [], action) {
   // action é o objeto que enviamos com dispatch
   // state é o conteúdo anterior armazenado nesse store
   switch (action.type) {
-    case '@cart/ADD':
+    case '@cart/ADD_SUCCESS':
       return produce(state, draft => {
         const productIndex = draft.findIndex(
           p => p.id === action.data.product.id
