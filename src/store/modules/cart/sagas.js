@@ -5,9 +5,11 @@
 
 import { call, put, all, takeLatest, select } from 'redux-saga/effects';
 import api from '../../../services/api';
+import history from '../../../services/history';
 import { formatPrice } from '../../../utils/format';
 
-import { addToCartSuccess, updateAmount } from './actions';
+import { addToCartSuccess, updateAmountSuccess } from './actions';
+import { toast } from 'react-toastify';
 
 function* addToCart({ data: { id } }) {
   const productExists = yield select(state =>
@@ -22,14 +24,12 @@ function* addToCart({ data: { id } }) {
   const amount = currentAmount + 1;
 
   if (amount > stockAmount) {
-    console.tron.warn(
-      'Tentativa de comprar mais do que o permitido em estoque'
-    );
+    toast.error('Quantidade solicitada fora de estoque');
     return;
   }
 
   if (productExists) {
-    yield put(updateAmount(id, amount));
+    yield put(updateAmountSuccess(id, amount));
   } else {
     const response = yield call(api.get, `/products/${id}`);
 
@@ -40,8 +40,32 @@ function* addToCart({ data: { id } }) {
     };
 
     yield put(addToCartSuccess(data));
+    history.push('/cart');
   }
 }
 
+function* updateAmount({ data: { id, amount } }) {
+  if (amount <= 0) return;
+
+  /*
+  const product = yield select(state =>
+    state.cartReducer.find(p => p.id === id)
+  );
+  */
+
+  const stock = yield call(api.get, `stock/${id}`);
+  const stockAmount = stock.data.amount;
+
+  if (amount > stockAmount) {
+    toast.error('Quantidade solicitada fora de estoque');
+    return;
+  }
+
+  yield put(updateAmountSuccess(id, amount));
+}
+
 //takeLatest: se nao terminou a chamada a API, ele vai executar somente o ultimo request disparado pelo usuário
-export default all([takeLatest('@cart/ADD_REQUEST', addToCart)]);
+export default all([
+  takeLatest('@cart/ADD_REQUEST', addToCart),
+  takeLatest('@cart/UPDATE_AMOUNT_REQUEST', updateAmount),
+]);
